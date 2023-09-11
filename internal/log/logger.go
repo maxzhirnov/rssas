@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -20,7 +22,14 @@ func NewLogger() (*Logger, error) {
 
 	log.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			repopath := "github.com/maxzhirnov/rssas/"
+			function := strings.Replace(f.Function, repopath, "", -1)
+			return function, ""
+		},
 	})
+
+	log.SetReportCaller(true)
 
 	logFile, err := setupFile()
 	if err != nil {

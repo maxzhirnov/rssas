@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -35,8 +36,8 @@ func NewApp(repo repo, parser parser, logger *log.Logger) *App {
 	}
 }
 
-func (app App) ParseAllFeeds() error {
-	app.logger.Log.Info("parsing all feeds")
+func (app App) parseAllFeeds() error {
+	app.logger.Log.Info("Parsing all feeds")
 	err := app.parser.ParseAll()
 	if err != nil {
 		app.logger.Log.Error(err)
@@ -56,6 +57,7 @@ func (app App) ParseAllFeeds() error {
 }
 
 func (app App) AddNewFeed(feedURL string) error {
+	app.logger.Log.Infof("Adding new feed: %s", feedURL)
 	feed, err := app.parser.ParseFeed(feedURL)
 	if err != nil {
 		app.logger.Log.Error(err)
@@ -74,10 +76,12 @@ func (app App) StartFeedParserWorker(hours int) (stopFunc func()) {
 	stop := make(chan bool)
 
 	go func() {
+		app.logger.Log.Info("Starting StartFeedParserWorker")
 		for {
 			select {
 			case <-ticker.C:
-				err := app.ParseAllFeeds()
+				app.logger.Log.Info("Starting StartFeedParserWorker worker job")
+				err := app.parseAllFeeds()
 				if err != nil {
 					app.logger.Log.Error(err)
 				} else {
@@ -100,10 +104,12 @@ func (app App) StartFeedListUpdater(minutes int) (stopFunc func()) {
 	stop := make(chan bool)
 
 	go func() {
+		app.logger.Log.Info("Starting StartFeedListUpdater")
 		for {
 			select {
 			case <-ticker.C:
 				// Update feeds in parser
+				app.logger.Log.Info("Starting StartFeedListUpdater worker job")
 				feeds, err := app.repo.LoadFeeds()
 				feedsAdded := app.parser.AddFeeds(feeds)
 				if err != nil {
@@ -115,6 +121,27 @@ func (app App) StartFeedListUpdater(minutes int) (stopFunc func()) {
 						app.logger.Log.Info("No new feeds found to add")
 					}
 				}
+			case <-stop:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+
+	return func() {
+		close(stop)
+	}
+}
+
+func (app App) TickerTest(seconds int) (stopFunc func()) {
+	ticker := time.NewTicker(time.Duration(seconds) * time.Second)
+	stop := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				fmt.Println(time.Now().Format(time.ANSIC))
 			case <-stop:
 				ticker.Stop()
 				return

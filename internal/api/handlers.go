@@ -20,7 +20,7 @@ func newHandlers(app *service.App) *handlers {
 
 func (h handlers) ping(c echo.Context) error {
 	responseData := map[string]string{
-		"message": "Pong!",
+		"message": "Pong",
 	}
 	return c.JSON(http.StatusOK, responseData)
 }
