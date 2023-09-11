@@ -5,3 +5,6 @@ Content-Type: application/json
 {
   "feed_url": "https://news.ycombinator.com/rss"
 }
+
+### ping
+GET http://localhost:8080/ping

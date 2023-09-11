@@ -49,7 +49,7 @@ func main() {
 	_ = app.StartFeedParserWorker(1)
 	_ = app.StartFeedListUpdater(15)
 
-	server := api.NewServer(app)
+	server := api.NewServer(app, logger)
 	if err := server.Run(":8080"); err != nil {
 		logger.Log.Fatal(err)
 	}

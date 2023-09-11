@@ -43,16 +43,11 @@ func (s *MongoStorage) Bootstrap() error {
 	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	//defer cancel()
 
-	indexModel := mongo.IndexModel{
-		Keys: bson.M{
-			"guid": 1,
-		},
-		Options: options.Index().SetUnique(true),
+	if err := s.createIndex("guid", "items"); err != nil {
+		return err
 	}
 
-	_, err := s.client.Database(s.database).Collection("items").Indexes().CreateOne(context.TODO(), indexModel)
-	if err != nil {
-		s.logger.Log.Error(err)
+	if err := s.createIndex("link", "feeds"); err != nil {
 		return err
 	}
 
@@ -104,4 +99,21 @@ func (s *MongoStorage) GetFeedsLinks() ([]string, error) {
 	}
 
 	return result, nil
+}
+
+func (s *MongoStorage) createIndex(fieldName, collection string) error {
+	indexModel := mongo.IndexModel{
+		Keys: bson.M{
+			fieldName: 1,
+		},
+		Options: options.Index().SetUnique(true),
+	}
+
+	_, err := s.client.Database(s.database).Collection(collection).Indexes().CreateOne(context.TODO(), indexModel)
+	if err != nil {
+		s.logger.Log.Error(err)
+		return err
+	}
+
+	return nil
 }

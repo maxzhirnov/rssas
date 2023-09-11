@@ -5,20 +5,24 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"rssas/internal/log"
 	"rssas/internal/service"
 )
 
 type handlers struct {
-	app *service.App
+	app    *service.App
+	logger *log.Logger
 }
 
-func newHandlers(app *service.App) *handlers {
+func newHandlers(app *service.App, logger *log.Logger) *handlers {
 	return &handlers{
-		app: app,
+		app:    app,
+		logger: logger,
 	}
 }
 
 func (h handlers) ping(c echo.Context) error {
+	h.logger.Log.Info("ping handler fired")
 	responseData := map[string]string{
 		"message": "Pong",
 	}
@@ -30,13 +34,16 @@ type AddFeedRequest struct {
 }
 
 func (h handlers) addFeed(c echo.Context) error {
+	h.logger.Log.Info("addFeed handler fired")
 	addFeed := new(AddFeedRequest)
 	if err := c.Bind(addFeed); err != nil {
+		h.logger.Log.Error(err)
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	err := h.app.AddNewFeed(addFeed.FeedURL)
 	if err != nil {
+		h.logger.Log.Error(err)
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
