@@ -72,7 +72,9 @@ func (p *RSSParser) ParseFeed(feedURL string) (*gofeed.Feed, error) {
 	return feed, nil
 }
 
-func (p *RSSParser) AddFeeds(newFeeds []string) {
+func (p *RSSParser) AddFeeds(newFeeds []string) []string {
+	added := make([]string, 0)
+
 	existingItemsMap := make(map[string]struct{})
 
 	// Заполняем карту существующими элементами.
@@ -84,7 +86,9 @@ func (p *RSSParser) AddFeeds(newFeeds []string) {
 	for _, newItem := range newFeeds {
 		if _, exists := existingItemsMap[newItem]; !exists {
 			p.feedURLs = append(p.feedURLs, newItem)
+			added = append(added, newItem)
 			existingItemsMap[newItem] = struct{}{}
 		}
 	}
+	return added
 }

@@ -18,7 +18,7 @@ type parser interface {
 	ParseAll() error
 	ParsedFeeds() []*gofeed.Feed
 	ParseFeed(string) (*gofeed.Feed, error)
-	AddFeeds([]string)
+	AddFeeds([]string) []string
 }
 
 type App struct {
@@ -105,11 +105,15 @@ func (app App) StartFeedListUpdater(minutes int) (stopFunc func()) {
 			case <-ticker.C:
 				// Update feeds in parser
 				feeds, err := app.repo.LoadFeeds()
-				app.parser.AddFeeds(feeds)
+				feedsAdded := app.parser.AddFeeds(feeds)
 				if err != nil {
 					app.logger.Log.Error(err)
 				} else {
-					app.logger.Log.Infof("Added new feeds to parser: %s", feeds)
+					if len(feedsAdded) > 0 {
+						app.logger.Log.Infof("Added %d new feeds to parser: %s", len(feedsAdded), feedsAdded)
+					} else {
+						app.logger.Log.Info("No new feeds found to add")
+					}
 				}
 			case <-stop:
 				ticker.Stop()
