@@ -32,23 +32,24 @@ func (c *Config) Load() error {
 	}
 
 	if err := godotenv.Load(".env"); err != nil {
-		log.Error(err)
-		return err
+		log.Warn(err)
 	}
 
 	openaiToken, ok := os.LookupEnv("OPENAI_SECRET")
-	if !ok {
-		log.Warn(fmt.Errorf("openai token haven't been found in env"))
+	if ok {
+		c.openaiToken = openaiToken
+	} else {
+		err := fmt.Errorf("openai token haven't been found in env")
+		log.Error(err)
 	}
 
 	mongoConn, ok := os.LookupEnv("MONGODB_URI")
 	if !ok {
 		err := fmt.Errorf("mongo conn string haven't been found in env")
-		log.Warn(err)
+		log.Error(err)
 		return err
 	}
 
-	c.openaiToken = openaiToken
 	c.mongoConn = mongoConn
 
 	return nil

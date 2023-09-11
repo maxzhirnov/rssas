@@ -19,8 +19,12 @@ func main() {
 
 	rssParser := rssparser.NewRSSParser(conf.RSSFeeds)
 
-	mongoStorage, _ := storage.NewMongoStorage(conf.MongoConn(), "rss2", "items")
+	mongoStorage, err := storage.NewMongoStorage(conf.MongoConn(), "rss2", "items")
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer mongoStorage.Close()
+
 	if err := mongoStorage.Bootstrap(); err != nil {
 		log.Fatal(err)
 	}

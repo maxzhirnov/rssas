@@ -14,5 +14,8 @@ func newHandlers() *handlers {
 }
 
 func (h handlers) ping(c echo.Context) error {
-	return c.JSON(http.StatusOK, "pong")
+	responseData := map[string]string{
+		"message": "Pong!",
+	}
+	return c.JSON(http.StatusOK, responseData)
 }

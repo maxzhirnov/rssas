@@ -26,4 +26,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: maxzhirnov/rssapp:latest
+          tags: maxzhirnov/rssas:latest

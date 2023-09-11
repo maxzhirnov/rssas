@@ -22,6 +22,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /
 
 COPY --from=builder /app/rssapp /rssapp
+COPY --from=builder /app/config.yml /config.yml
 
 # Запустите приложение
 ENTRYPOINT ["/rssapp"]
