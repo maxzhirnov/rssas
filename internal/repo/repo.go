@@ -3,6 +3,7 @@ package repo
 import (
 	"github.com/mmcdole/gofeed"
 
+	"rssas/internal/log"
 	"rssas/internal/models"
 )
 
@@ -21,11 +22,13 @@ type storage interface {
 
 type Repo struct {
 	storage storage
+	logger  *log.Logger
 }
 
-func NewRepo(storage storage) *Repo {
+func NewRepo(storage storage, logger *log.Logger) *Repo {
 	return &Repo{
 		storage: storage,
+		logger:  logger,
 	}
 }
 
@@ -39,6 +42,7 @@ func (r Repo) SaveItems(feed *gofeed.Feed) error {
 
 func (r Repo) SaveFeed(feed *gofeed.Feed, feedURL string) error {
 	if err := r.storage.InsertOne(models.NewFeed(feed.Title, feedURL), collNameFeeds); err != nil {
+		r.logger.Log.Error(err)
 		return err
 	}
 	return nil

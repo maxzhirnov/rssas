@@ -7,14 +7,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"rssas/internal/log"
 )
 
 type MongoStorage struct {
 	client   *mongo.Client
 	database string
+	logger   *log.Logger
 }
 
-func NewMongoStorage(connString, database string) (*MongoStorage, error) {
+func NewMongoStorage(connString, database string, logger *log.Logger) (*MongoStorage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -23,7 +26,11 @@ func NewMongoStorage(connString, database string) (*MongoStorage, error) {
 		return nil, err
 	}
 
-	return &MongoStorage{client: client, database: database}, nil
+	return &MongoStorage{
+		client:   client,
+		database: database,
+		logger:   logger,
+	}, nil
 }
 
 func (s *MongoStorage) Close() error {
@@ -45,6 +52,7 @@ func (s *MongoStorage) Bootstrap() error {
 
 	_, err := s.client.Database(s.database).Collection("items").Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
+		s.logger.Log.Error(err)
 		return err
 	}
 
@@ -55,8 +63,9 @@ func (s *MongoStorage) InsertMany(document []interface{}, collection string) err
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	coll := s.client.Database(s.database).Collection(collection)
-	_, err := coll.InsertMany(ctx, document)
+	_, err := coll.InsertMany(ctx, document, options.InsertMany().SetOrdered(false))
 	if err != nil {
+		s.logger.Log.Error(err)
 		return err
 	}
 
@@ -69,6 +78,7 @@ func (s *MongoStorage) InsertOne(document interface{}, collection string) error 
 	coll := s.client.Database(s.database).Collection(collection)
 	_, err := coll.InsertOne(ctx, document)
 	if err != nil {
+		s.logger.Log.Error(err)
 		return err
 	}
 
@@ -83,6 +93,7 @@ func (s *MongoStorage) GetFeedsLinks() ([]string, error) {
 
 	links, err := coll.Distinct(context.TODO(), "link", bson.D{})
 	if err != nil {
+		s.logger.Log.Error(err)
 		return nil, err
 	}
 
