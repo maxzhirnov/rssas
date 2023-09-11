@@ -21,12 +21,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer mongoStorage.Close()
 
-	if err := mongoStorage.Bootstrap(); err != nil {
+	repository := repo.NewRepo(mongoStorage)
+	defer repository.Close()
+
+	if err := repository.Bootstrap(); err != nil {
 		log.Fatal(err)
 	}
-	repository := repo.NewRepo(mongoStorage)
+
 	feeds, err := repository.LoadFeeds()
 	if err != nil {
 		log.Error(err)
