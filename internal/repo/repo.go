@@ -31,8 +31,8 @@ func (r Repo) SaveItems(feed *gofeed.Feed) error {
 	return r.storage.InsertMany(items, "items")
 }
 
-func (r Repo) SaveFeed(feed *gofeed.Feed) error {
-	if err := r.storage.InsertOne(models.NewFeed(feed), "feeds"); err != nil {
+func (r Repo) SaveFeed(feed *gofeed.Feed, feedURL string) error {
+	if err := r.storage.InsertOne(models.NewFeed(feed.Title, feedURL), "feeds"); err != nil {
 		return err
 	}
 	return nil

@@ -9,7 +9,7 @@ import (
 
 type repo interface {
 	SaveItems(feed *gofeed.Feed) error
-	SaveFeed(feed *gofeed.Feed) error
+	SaveFeed(feed *gofeed.Feed, feedURL string) error
 }
 
 type parser interface {
@@ -31,6 +31,7 @@ func NewApp(repo repo, parser parser) *App {
 }
 
 func (app App) ParseAllFeeds() error {
+	log.Info("parsing all feeds")
 	err := app.parser.ParseAll()
 	if err != nil {
 		return err
@@ -77,7 +78,7 @@ func (app App) AddNewFeed(feedURL string) error {
 		return err
 	}
 
-	if err := app.repo.SaveFeed(feed); err != nil {
+	if err := app.repo.SaveFeed(feed, feedURL); err != nil {
 		return err
 	}
 	return nil

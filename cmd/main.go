@@ -33,10 +33,11 @@ func main() {
 	}
 
 	conf.AddFeeds(feeds)
+	log.Infof("feeds: %s'n", conf.RSSFeeds)
 
 	rssParser := rssparser.NewRSSParser(conf.RSSFeeds)
 	app := service.NewApp(repository, rssParser)
-	_ = app.StartFeedParserWorker(3)
+	_ = app.StartFeedParserWorker(1)
 
 	server := api.NewServer(app)
 	if err := server.Run(":8080"); err != nil {
