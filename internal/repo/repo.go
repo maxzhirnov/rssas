@@ -7,8 +7,10 @@ import (
 )
 
 type storage interface {
-	InsertMany(document []interface{}) error
+	InsertMany(document []interface{}, collection string) error
+	InsertOne(document interface{}, collection string) error
 	Bootstrap() error
+	GetFeedsLinks() ([]string, error)
 }
 
 type Repo struct {
@@ -26,5 +28,16 @@ func (r Repo) SaveItems(feed *gofeed.Feed) error {
 	for i, p := range feed.Items {
 		items[i] = models.NewFeedItem(feed.Title, p)
 	}
-	return r.storage.InsertMany(items)
+	return r.storage.InsertMany(items, "items")
+}
+
+func (r Repo) SaveFeed(feed *gofeed.Feed) error {
+	if err := r.storage.InsertOne(models.NewFeed(feed), "feeds"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r Repo) LoadFeeds() ([]string, error) {
+	return r.storage.GetFeedsLinks()
 }

@@ -55,3 +55,11 @@ func (p *RSSParser) ParseAll() error {
 func (p *RSSParser) ParsedFeeds() []*gofeed.Feed {
 	return p.parsedFeeds
 }
+
+func (p *RSSParser) ParseFeed(feedURL string) (*gofeed.Feed, error) {
+	feed, err := p.parser.ParseURL(feedURL)
+	if err != nil {
+		return nil, err
+	}
+	return feed, nil
+}

@@ -1,0 +1,7 @@
+###
+POST http://localhost:8080/add-feed
+Content-Type: application/json
+
+{
+  "feed_url": "https://news.ycombinator.com/rss"
+}

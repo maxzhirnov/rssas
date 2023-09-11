@@ -10,12 +10,11 @@ import (
 )
 
 type MongoStorage struct {
-	client     *mongo.Client
-	database   string
-	collection string
+	client   *mongo.Client
+	database string
 }
 
-func NewMongoStorage(connString, database, collection string) (*MongoStorage, error) {
+func NewMongoStorage(connString, database string) (*MongoStorage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -24,17 +23,17 @@ func NewMongoStorage(connString, database, collection string) (*MongoStorage, er
 		return nil, err
 	}
 
-	return &MongoStorage{client: client, database: database, collection: collection}, nil
+	return &MongoStorage{client: client, database: database}, nil
 }
 
-func (c *MongoStorage) Close() error {
+func (s *MongoStorage) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return c.client.Disconnect(ctx)
+	return s.client.Disconnect(ctx)
 }
 
-func (c *MongoStorage) Bootstrap() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (s *MongoStorage) Bootstrap() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	indexModel := mongo.IndexModel{
@@ -44,7 +43,7 @@ func (c *MongoStorage) Bootstrap() error {
 		Options: options.Index().SetUnique(true),
 	}
 
-	_, err := c.client.Database(c.database).Collection(c.collection).Indexes().CreateOne(ctx, indexModel)
+	_, err := s.client.Database(s.database).Collection("items").Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		return err
 	}
@@ -52,14 +51,46 @@ func (c *MongoStorage) Bootstrap() error {
 	return nil
 }
 
-func (s *MongoStorage) InsertMany(document []interface{}) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (s *MongoStorage) InsertMany(document []interface{}, collection string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	coll := s.client.Database(s.database).Collection(s.collection)
+	coll := s.client.Database(s.database).Collection(collection)
 	_, err := coll.InsertMany(ctx, document)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (s *MongoStorage) InsertOne(document interface{}, collection string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	coll := s.client.Database(s.database).Collection(collection)
+	_, err := coll.InsertOne(ctx, document)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *MongoStorage) GetFeedsLinks() ([]string, error) {
+	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	//defer cancel()
+
+	coll := s.client.Database(s.database).Collection("feeds")
+
+	links, err := coll.Distinct(context.TODO(), "link", bson.D{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Конвертируем []interface{} в []string
+	var result []string
+	for _, link := range links {
+		result = append(result, link.(string))
+	}
+
+	return result, nil
 }

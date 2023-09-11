@@ -9,11 +9,13 @@ import (
 
 type repo interface {
 	SaveItems(feed *gofeed.Feed) error
+	SaveFeed(feed *gofeed.Feed) error
 }
 
 type parser interface {
 	ParseAll() error
 	ParsedFeeds() []*gofeed.Feed
+	ParseFeed(string) (*gofeed.Feed, error)
 }
 
 type App struct {
@@ -67,4 +69,16 @@ func (app App) StartFeedParserWorker(hours int) (stopFunc func()) {
 	return func() {
 		close(stop)
 	}
+}
+
+func (app App) AddNewFeed(feedURL string) error {
+	feed, err := app.parser.ParseFeed(feedURL)
+	if err != nil {
+		return err
+	}
+
+	if err := app.repo.SaveFeed(feed); err != nil {
+		return err
+	}
+	return nil
 }

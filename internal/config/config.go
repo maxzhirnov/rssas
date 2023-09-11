@@ -58,3 +58,20 @@ func (c *Config) Load() error {
 func (c *Config) MongoConn() string {
 	return c.mongoConn
 }
+
+func (c *Config) AddFeeds(newFeeds []string) {
+	existingItemsMap := make(map[string]struct{})
+
+	// Заполняем карту существующими элементами.
+	for _, item := range c.RSSFeeds {
+		existingItemsMap[item] = struct{}{}
+	}
+
+	// Проверяем каждый новый элемент на наличие в карте.
+	for _, newItem := range newFeeds {
+		if _, exists := existingItemsMap[newItem]; !exists {
+			c.RSSFeeds = append(c.RSSFeeds, newItem)
+			existingItemsMap[newItem] = struct{}{}
+		}
+	}
+}

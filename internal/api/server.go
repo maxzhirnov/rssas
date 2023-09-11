@@ -21,12 +21,13 @@ func NewServer(app *service.App) *Server {
 	return &Server{
 		app:      app,
 		echo:     e,
-		handlers: newHandlers(),
+		handlers: newHandlers(app),
 	}
 }
 
 func (s Server) Run(address string) error {
 	s.echo.GET("/ping", s.handlers.ping)
+	s.echo.POST("/add-feed", s.handlers.addFeed)
 	if err := s.echo.Start(address); err != nil {
 		return err
 	}
